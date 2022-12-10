@@ -1,0 +1,139 @@
+*{
+    margin: 0px;
+    padding: 0px;
+}
+@font-face {
+    font-family: OpenSansExtraBold;
+    src: url(TitilliumWeb-Black.ttf);
+}
+
+:root {
+    --main-bg-color: #2B3A55;
+    --primary-color: #CE7777;
+    --font--color: #434242;
+    --secondary--color: #F0E9D2;
+    --almost-black: #181D31;
+    --main-font: OpenSansExtraBold;
+}
+
+body{
+
+    width: 300px;
+    height: 500px;
+    background-color: var(--main-bg-color);
+    border: solid;
+    border-width: 1px;
+    border-color: black;
+}
+
+/* All Header Stuff */
+header{
+    width: 100%;
+    height: 100px;
+}
+h1{
+    font-family: var(--main-font);
+    font-size: 52px;
+    color: var(--primary-color);
+    text-shadow: 4px 4px var(--almost-black);
+    line-height: 42px;
+}
+.title{
+    width: 60%;
+    height: 100%;
+    align-items: center;
+    display: inline-flex;
+    margin-left: 10px;
+}
+
+.logo-container{
+    float: right;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+.logo-img{
+    display: inline-block;
+    width: 75px;
+    height: auto;
+    background-color: var(--primary-color);
+}
+
+/* End header stuff */
+
+
+/* Body and inputs */
+.container{
+    width: 100%;
+    height: fit-content;
+    background-color: #da2828;
+    margin-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 10px;
+}
+.text{
+    font-family: var(--main-font);
+    font-size: 24px;
+    color: var(--primary-color);
+    text-shadow: 2px 2px var(--almost-black);
+}
+.search-input{
+    user-select: none;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    height: 25px;
+    background-color: var(--secondary--color);
+    font-family: var(--main-font);
+    color: var(--font--color);
+    padding-left: 5px;
+    padding-right: 5px;
+    width: 200px;
+    
+}
+.search-button{
+    user-select: none;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    height: 25px;
+    width: 60px;
+    background-color: var(--primary-color);
+    cursor: pointer;
+    font-family: var(--main-font);
+    color: var(--font--color);
+}
+.search-button:hover{
+    background-color: #cc8f8f;
+}
+.aligner{
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.output{
+    font-family: var(--main-font);
+    color: var(--font--color);
+    line-height: 16px;
+    background-color: var(--secondary--color);
+    border-radius: 10px;
+    max-height: 150px;
+    overflow-y: scroll;
+}
+::-webkit-scrollbar {
+    width: 5px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    border-radius: 12.5px;
+  }
+   
+  ::-webkit-scrollbar-thumb {
+    background: rgb(0, 0, 0); 
+    border-radius: 12.5px;
+    border: solid 8px transparent;
+  }
+
+.text-aligner{
+    padding: 7.5px;
+}
