@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
-    <title>Problem Solver</title>
+    <title>Pocket Genius</title>
 </head>
 <body>
     <header>
@@ -43,18 +43,46 @@
         <div class="container">
             <div class="aligner">
                 <div class="text">
+                    <p>Edit</p>
+                </div>
+                <div class="">
+                    <input class="search-input" placeholder="Enter Edit Prompt">
+                    <button class="search-button">Edit</button>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="aligner">
+                <div class="text">
+                    <p>Questions</p>
+                </div>
+                <div>
+                    <select class="dropdown" id="cars" name="Question">
+                      <option>Question 1</option>
+                      <option>Question 2</option>
+                      <option>Question 3</option>
+                      <option>Question 4</option>
+                    </select>
+                </div>
+                <div class="output">
+                    <div class="text-aligner">
+                        <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Exercitationem voluptas itaque quasi? Nemo, hic fugit. Illo deleniti iste repellendus? Quod pariatur tempore eum dolores molestiae magnam cupiditate accusantium deserunt corrupti. Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi ut autem accusantium repellat tempora nobis, mollitia quisquam. Magni quia minus quisquam at reiciendis? Modi soluta repellat voluptate perspiciatis sunt ad.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="aligner">
+                <div class="text">
                     <p>Options</p>
                 </div>
                 <div class="options">
                     <div class="option-holder">
                         <div class="optiontext">
-                            <p>Auto Solve Test Questions</p>
+                            <p>API Key</p>
                         </div>
                         <div class="switchcontainer">
-                            <label class="switch">
-                                <input type="checkbox">
-                                <span class="slider round"></span>
-                            </label>
+                            <input class="optionsinput" placeholder="API Key">
                         </div>
                     </div>
                     <div class="option-holder">
@@ -68,9 +96,21 @@
                             </label>
                         </div>
                     </div>
+                    <div class="option-holder">
+                        <div class="optiontext">
+                            <p>Auto Solve Enabled</p>
+                        </div>
+                        <div class="switchcontainer">
+                            <label class="switch">
+                                <input id="auto-solve" type="checkbox">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <script src="popup.js"></script>
 </body>
 </html>

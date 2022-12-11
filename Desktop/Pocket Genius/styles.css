@@ -148,6 +148,29 @@ h1{
     float: right;
     align-items: center;
 }
+.optionsinput{
+    
+    font-family: var(--main-font);
+    color: var(--font--color);
+    background-color: var(--secondary--color);
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.dropdown{
+    font-family: var(--main-font);
+    color: var(--font--color);
+    background-color: var(--secondary--color);
+    outline: none;
+    border: none;
+    width: 100%;
+    border-radius: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-bottom: 5px;
+}
 
 
 
@@ -194,7 +217,7 @@ h1{
     transition: .4s;
   }
   
-  input:checked + .slider {
+  .enabled{
     background-color: var(--primary-color);
   }
   
@@ -202,7 +225,7 @@ h1{
     box-shadow: 0 0 1px var(--primary-color);
   }
   
-  input:checked + .slider:before {
+  .enabled:before {
     -webkit-transform: translateX(20px);
     -ms-transform: translateX(20px);
     transform: translateX(20px);
