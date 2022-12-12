@@ -1,26 +1,24 @@
-const questionContainer = getElementByXpath("/html/body/div[3]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[5]")
-
 const KEY = "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"
 const MODEL = "text-davinci-003"
-
-
-
-var questionsElements = []
-for(var i = 0; i < questionContainer.children.length;i++){
-    var child = questionContainer.children[i];
-    if(child.ariaLabel == "Question"){
-        questionsElements.push(child);
-    }
-}
 
 function getElementByXpath(path) {
     return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 }
 
 function parseCanvasMultipleChoice(){
-    var questions = {"questionCount":questionsElements.length}
+    const questionContainer = getElementByXpath("/html/body/div[3]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[5]")
+
+    var questionsElements = []
+    for(var i = 0; i < questionContainer.children.length;i++){
+        var child = questionContainer.children[i];
+        if(child.ariaLabel == "Question"){
+            questionsElements.push(child);
+        }
+    }
+
+    var questions = {"questionCount":questionsElements.length,"questions":[]}
     for(var x = 0; x < questionsElements.length; x++){
-        questions[x] = {"question":"","answers":[],"answerElements":[],"prompt":"","response":"","answer":""}
+        questions.questions.push({"question":"","answers":[],"answerElements":[],"prompt":"","response":"","answer":""})
         var elementChildren = Array.from(questionsElements[x].children)
         elementChildren.forEach(elementChild =>{
             if(elementChild.id.includes("question_")){
@@ -35,7 +33,7 @@ function parseCanvasMultipleChoice(){
                                 var questionTextChild = childChildChild
                                 if(!questionTextChild) continue;
 
-                                questions[x].question = questionTextChild.innerText
+                                questions.questions[x].question = questionTextChild.innerText
                             }
                             if(childChildChild.className == "answers"){
                                 var answerWrapper = Array.from(childChildChild.children[0].children)
@@ -54,15 +52,15 @@ function parseCanvasMultipleChoice(){
                                         answerText.push(text)
                                     }
                                 })
-                                questions[x].answers = answerText
-                                questions[x].answerElements = answerElements
+                                questions.questions[x].answers = answerText
+                                questions.questions[x].answerElements = answerElements
                             }
                         }
                     }
                 })
             }
         })
-        questions[x].prompt = questions[x].question + "\n" + questions[x].answers.join("\n") + "\n"
+        questions.questions[x].prompt = questions.questions[x].question + "\n" + questions.questions[x].answers.join("\n") + "\n"
     };
     return questions
 }
@@ -112,12 +110,12 @@ async function askForClarification(response,potentialAnswers){
 
 async function autoSolveQuestions(){
     for(var i = 0; i < questions.questionCount;i++){
-        const response = await sendPromptToAI(questions[i]["prompt"])
-        const answer = await parseAIResponse(response.choices[0].text,questions[i]["answers"])
-        questions[i].answer = answer
-        questions[i].response = response
+        const response = await sendPromptToAI(questions.questions[i]["prompt"])
+        const answer = await parseAIResponse(response.choices[0].text,questions.questions[i]["answers"])
+        questions.questions[i].answer = answer
+        questions.questions[i].response = response
         if (answer){
-            questions[i]["answerElements"][questions[i].answers.indexOf(answer)].style = "background-color: #90EE90;";
+            questions[i]["answerElements"][questions.questions[i].answers.indexOf(answer)].style = "background-color: #90EE90;";
         }
         console.log("Question " + (i+1) + " Answer: " + answer)
     }
