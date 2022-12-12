@@ -4,6 +4,12 @@ const MODEL = "text-davinci-003"
 const clarifyAnswers = false;
 
 
+const KEY = "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"
+const MODEL = "text-davinci-003"
+
+const clarifyAnswers = false;
+
+
 function parseCanvasMultipleChoice(){
     var questionContainer = document.querySelector("#questions")
 
@@ -39,13 +45,17 @@ function parseCanvasMultipleChoice(){
                                 var answerText = []
                                 var answerElements = []
                                 answerWrapper.forEach(answer =>{
-                                    if(answer.className != "clear"){
+                                    if(answer.className == "answer"){
+                                       
                                         try{
-                                            var text = answer.children[1].children[1].children[0].innerText
+                                            var text = answer.children[0].children[1].innerText
+                                            if(!text){
+                                                text = answer.children[1].children[1].children[0].innerText
+                                            }
                                             if(!text){
                                                 text = answer.children[1].children[1].children[1].children[0].innerText
                                             }
-                                            
+                                           
                                         } catch{}
                                         answerElements.push(answer)
                                         answerText.push(text)
@@ -63,6 +73,7 @@ function parseCanvasMultipleChoice(){
     };
     return questions
 }
+
 
 async function sendPromptToAI(prompt){
     const response = await fetch("https://api.openai.com/v1/completions",{
