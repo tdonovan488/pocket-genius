@@ -6,7 +6,7 @@ function getElementByXpath(path) {
 }
 
 function parseCanvasMultipleChoice(){
-    const questionContainer = getElementByXpath("/html/body/div[3]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[5]")
+    var questionContainer = getElementByXpath("/html/body/div[3]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[5]")
 
     var questionsElements = []
     for(var i = 0; i < questionContainer.children.length;i++){
