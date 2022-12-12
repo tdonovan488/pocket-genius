@@ -1,4 +1,4 @@
-const questionContainer = document.querySelector("#questions")
+const questionContainer = getElementByXpath("/html/body/div[3]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[5]")
 
 const KEY = "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"
 const MODEL = "text-davinci-003"
@@ -13,6 +13,9 @@ for(var i = 0; i < questionContainer.children.length;i++){
     }
 }
 
+function getElementByXpath(path) {
+    return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+}
 
 function parseCanvasMultipleChoice(){
     var questions = {"questionCount":questionsElements.length}
