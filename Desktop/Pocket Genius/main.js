@@ -86,6 +86,12 @@ async function sendPromptToAI(prompt){
 async function parseAIResponse(text,answers){
     for(var i = 0; i < answers.length;i++){
         if(text.toLowerCase().includes(answers[i].toLowerCase())){
+            var previousText = text.toLowerCase().split(answers[i].toLowerCase())[0]
+            for(var x = 0; x < answers.length;x++){
+                if(previousText.includes(answers[x].toLowerCase())){
+                    return answers[x]
+                }
+            }
             return answers[i]
         }
     }
