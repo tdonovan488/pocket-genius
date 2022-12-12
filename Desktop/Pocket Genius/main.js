@@ -1,21 +1,13 @@
-var questionContianer = document.querySelector("#questions");
+const questionContainer = document.querySelector("#questions")
 
-var KEY = "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"
+const KEY = "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"
 const MODEL = "text-davinci-003"
 
-var autoSolve = true;
-
-chrome.storage.local.get(["api_key","auto_solve_enabled"]).then((result) => {
-    console.log("API KEY: " + result.api_key)
-    console.log("AUTO SOLVE ENABLED: " + Boolean(result.auto_solve_enabled))
-    api_key_input.value = result.api_key;
-    auto_solve_enabled = Boolean(result.auto_solve_enabled);
-});
 
 
 var questionsElements = []
-for(var i = 0; i < questionContianer.children.length;i++){
-    var child = questionContianer.children[i];
+for(var i = 0; i < questionContainer.children.length;i++){
+    var child = questionContainer.children[i];
     if(child.ariaLabel == "Question"){
         questionsElements.push(child);
     }
@@ -25,7 +17,7 @@ for(var i = 0; i < questionContianer.children.length;i++){
 function parseCanvasMultipleChoice(){
     var questions = {"questionCount":questionsElements.length}
     for(var x = 0; x < questionsElements.length; x++){
-        questions[x] = {"question":"","answers":[],"prompt":"","response":"","answer":""}
+        questions[x] = {"question":"","answers":[],"answerElements":[],"prompt":"","response":"","answer":""}
         var elementChildren = Array.from(questionsElements[x].children)
         elementChildren.forEach(elementChild =>{
             if(elementChild.id.includes("question_")){
@@ -45,6 +37,7 @@ function parseCanvasMultipleChoice(){
                             if(childChildChild.className == "answers"){
                                 var answerWrapper = Array.from(childChildChild.children[0].children)
                                 var answerText = []
+                                var answerElements = []
                                 answerWrapper.forEach(answer =>{
                                     if(answer.className != "clear"){
                                         try{
@@ -52,12 +45,14 @@ function parseCanvasMultipleChoice(){
                                             if(!text){
                                                 text = answer.children[1].children[1].children[1].children[0].innerText
                                             }
+                                            
                                         } catch{}
-
+                                        answerElements.push(answer)
                                         answerText.push(text)
                                     }
                                 })
                                 questions[x].answers = answerText
+                                questions[x].answerElements = answerElements
                             }
                         }
                     }
@@ -91,7 +86,17 @@ async function parseAIResponse(text,answers){
             return answers[i]
         }
     }
-    
+
+    return await askForClarification(text,answers)
+}
+async function askForClarification(response,potentialAnswers){
+    for(var i = 0;i < potentialAnswers.length;i++){
+        const prompt = "Does '" + response + "' Mean the same thing as '" + potentialAnswers[i] + "'"
+        const newResponse = await sendPromptToAI(prompt)
+        if(newResponse.choices[0].text.toLowerCase().includes("yes,")){
+            return potentialAnswers[i]
+        }
+    }
     return null
 }
 
@@ -99,21 +104,16 @@ async function parseAIResponse(text,answers){
 async function autoSolveQuestions(){
     for(var i = 0; i < questions.questionCount;i++){
         const response = await sendPromptToAI(questions[i]["prompt"])
-        const answer = await parseAIResponse(response.choices[0].text)
+        const answer = await parseAIResponse(response.choices[0].text,questions[i]["answers"])
         questions[i].answer = answer
-        if(answer != null){
-
+        questions[i].response = response
+        if (answer){
+            questions[i]["answerElements"][questions[i].answers.indexOf(answer)].style = "background-color: #90EE90;";
         }
+        console.log("Question " + (i+1) + " Answer: " + answer)
     }
 }
 
-
 var questions = parseCanvasMultipleChoice()
+autoSolveQuestions()
 
-
-
-// console.log(JSON.stringify(questions))
-
-// for(var i = 0; i < questions.questionCount;i++){
-//     console.log(questions[i].prompt)
-// }
