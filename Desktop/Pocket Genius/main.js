@@ -1,12 +1,11 @@
 const KEY = "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"
 const MODEL = "text-davinci-003"
 
-function getElementByXpath(path) {
-    return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-}
+const clarifyAnswers = false;
+
 
 function parseCanvasMultipleChoice(){
-    var questionContainer = getElementByXpath("/html/body/div[3]/div[2]/div[2]/div/div[1]/div/div/div[2]/div[5]")
+    var questionContainer = document.querySelector("#questions")
 
     var questionsElements = []
     for(var i = 0; i < questionContainer.children.length;i++){
@@ -93,8 +92,8 @@ async function parseAIResponse(text,answers){
             return answers[i]
         }
     }
-
-    return await askForClarification(text,answers)
+    
+    return clarifyAnswers ? await askForClarification(text,answers) : null
 }
 async function askForClarification(response,potentialAnswers){
     for(var i = 0;i < potentialAnswers.length;i++){
