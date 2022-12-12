@@ -115,7 +115,7 @@ async function autoSolveQuestions(){
         questions.questions[i].answer = answer
         questions.questions[i].response = response
         if (answer){
-            questions[i]["answerElements"][questions.questions[i].answers.indexOf(answer)].style = "background-color: #90EE90;";
+            questions.questions[i]["answerElements"][questions.questions[i].answers.indexOf(answer)].style = "background-color: #90EE90;";
         }
         console.log("Question " + (i+1) + " Answer: " + answer)
     }
