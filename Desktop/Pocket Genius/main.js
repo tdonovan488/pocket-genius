@@ -1,10 +1,18 @@
 var api_key = "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"
+api_key = ""
 var MODEL = "text-davinci-003"
 var highlightCorrectQuestions = false;
-
 const clarifyAnswers = false;
 
 var questions;
+
+var url = document.location.href
+chrome.storage.local.get(null).then((result) => {
+    api_key = result.api_key
+
+    highlightCorrectAnswers = Boolean(result.highlightCorrectAnswers)
+    questions = result[url]
+});
 
 function parseCanvasMultipleChoice(){
     var questionContainer = document.querySelector("#questions")
@@ -79,6 +87,7 @@ function parseCanvasMultipleChoice(){
 
 
 async function sendPromptToAI(prompt){
+    if(!api_key) return
     const response = await fetch("https://api.openai.com/v1/completions",{
         method: 'POST',
         headers: {
@@ -155,9 +164,6 @@ async function autoSolveQuestions(){
         const answer = await parseAIResponse(response.choices[0].text,questions.questions[i]["answers"])
         responseFilled.questions[i].answer = answer
         responseFilled.questions[i].response = response
-        if(answer && highlightCorrectQuestions){
-            questions.questions[i]["answerElements"][questions.questions[i].answers.indexOf(answer)].style = "background-color: #90EE90;";
-        }
         console.log("Question " + (i+1) + " Answer: " + answer)
     }
     return responseFilled
@@ -185,15 +191,13 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             })();
             return true
         }
-    } else if(request["type"] == "startup"){
-        api_key = request["data"]["api_key"]
-        highlightCorrectQuestions = request["data"]["highlightCorrectQuestions"]
-
     } else if(request["type"] == "updateData"){
         if(request["data"] == "keyChange"){
             api_key = request["api_key"]
+            return true
         } else if(request["data"] == "highlightChange"){
             highlightCorrectQuestions = request["highlightCorrectQuestions"]
+            return true
         }
     }
 })
