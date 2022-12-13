@@ -2,13 +2,7 @@ const KEY = "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"
 const MODEL = "text-davinci-003"
 
 const clarifyAnswers = false;
-
-
-const KEY = "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"
-const MODEL = "text-davinci-003"
-
-const clarifyAnswers = false;
-
+const highlightCorrectQuestions = false;
 
 function parseCanvasMultipleChoice(){
     var questionContainer = document.querySelector("#questions")
@@ -45,17 +39,23 @@ function parseCanvasMultipleChoice(){
                                 var answerText = []
                                 var answerElements = []
                                 answerWrapper.forEach(answer =>{
-                                    if(answer.className == "answer"){
-                                       
+                                    if(answer.className.includes("answer") || answer.className == "answer"){
+                                       var text;
                                         try{
-                                            var text = answer.children[0].children[1].innerText
+                                            // console.log(answer.children[0].children[1].innerText)
+                                            text = answer.children[0].children[1].innerText
+                                        } catch{}
+                                        try{
                                             if(!text){
+                                                // console.log(answer.children[1].children[1].children[0].innerText)
                                                 text = answer.children[1].children[1].children[0].innerText
                                             }
+                                        } catch{}
+                                        try{
                                             if(!text){
+                                                // console.log(answer.children[1].children[1].children[1].children[0].innerText)
                                                 text = answer.children[1].children[1].children[1].children[0].innerText
                                             }
-                                           
                                         } catch{}
                                         answerElements.push(answer)
                                         answerText.push(text)
@@ -93,9 +93,10 @@ async function sendPromptToAI(prompt){
 }
 async function parseAIResponse(text,answers){
     for(var i = 0; i < answers.length;i++){
-        if(text.toLowerCase().includes(answers[i].toLowerCase())){
+        if(text.toLowerCase().includes(answers[i].toLowerCase()) || text.toLowerCase() == answers[i].toLowerCase()){
             var previousText = text.toLowerCase().split(answers[i].toLowerCase())[0]
             for(var x = 0; x < answers.length;x++){
+                if(answers[x] == answers[i]) continue
                 if(previousText.includes(answers[x].toLowerCase())){
                     return answers[x]
                 }
@@ -103,9 +104,35 @@ async function parseAIResponse(text,answers){
             return answers[i]
         }
     }
-    
+    var match = await checkForMatch(text,answers)
+    if(match) return match
     return clarifyAnswers ? await askForClarification(text,answers) : null
 }
+
+async function checkForMatch(response,potentialAnswers){
+    var bestScore = 0
+    var bestIndex = 0
+    for(var i = 0; i < potentialAnswers.length; i++){
+        var answerWords = potentialAnswers[i].toLowerCase().replace(/[^A-Za-z0-9\s]/g,'').split(" ")
+        var matchCount = 0
+        for(var x = 0; x < answerWords.length;x++){
+            if(response.toLowerCase().replace(/[^A-Za-z0-9\s]/g,'').includes(answerWords[x])){
+                matchCount++
+            }
+        }
+        var score = matchCount/answerWords.length
+        if (score > bestScore){
+            bestScore = score
+            bestIndex = i
+        }
+    }
+    if(bestScore > 0){
+        return potentialAnswers[bestIndex]
+    }
+
+    return null
+}
+
 async function askForClarification(response,potentialAnswers){
     for(var i = 0;i < potentialAnswers.length;i++){
         const prompt = "Does '" + response + "' Mean the same thing as '" + potentialAnswers[i] + "'"
@@ -124,7 +151,7 @@ async function autoSolveQuestions(){
         const answer = await parseAIResponse(response.choices[0].text,questions.questions[i]["answers"])
         questions.questions[i].answer = answer
         questions.questions[i].response = response
-        if (answer){
+        if(answer && highlightCorrectQuestions){
             questions.questions[i]["answerElements"][questions.questions[i].answers.indexOf(answer)].style = "background-color: #90EE90;";
         }
         console.log("Question " + (i+1) + " Answer: " + answer)
