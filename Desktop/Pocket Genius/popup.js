@@ -1,7 +1,7 @@
 var url = ""
 var questions;
 
-var api_key;
+var api_key = "";
 var highlightCorrectAnswers = false;
 chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
     url = tabs[0].url.toString();
@@ -13,7 +13,8 @@ chrome.storage.local.get(null).then((result) => {
     api_key = result.api_key
     api_key_input.value = api_key;
 
-    highlightCorrectAnswers = result.highlightCorrectAnswers
+    highlightCorrectAnswers = Boolean(result.highlightCorrectAnswers)
+    highlightAnswersSwitch.className = highlightCorrectAnswers ? "slider round enabled" : "slider round"
     console.log(JSON.stringify(result))
 
     if(result[url]){
@@ -26,6 +27,7 @@ chrome.storage.local.get(null).then((result) => {
         }
         if(questions.questions[0].response){
             questionResponseOutput.innerHTML = questions.questions[0].response.choices[0].text
+            questionAnswerOutput.innerHTML = questions.questions[0].answer
         }
         questionQuestionOutput.innerHTML = questions.questions[0].question
     }
@@ -49,12 +51,15 @@ api_key_input.addEventListener("change",function(){
 
 var highlightAnswersToggle = document.querySelector("body > div > div:nth-child(6) > div > div.options > div:nth-child(2) > div.switchcontainer > label")
 var highlightAnswersSwitch = document.querySelector("body > div > div:nth-child(6) > div > div.options > div:nth-child(2) > div.switchcontainer > label > span")
-highlightAnswersSwitch.className = highlightCorrectAnswers ? "slider round enabled" : "slider round"
-highlightAnswersToggle.addEventListener("click",function(){
+
+highlightAnswersSwitch.addEventListener("click",toggleHighlightAnswers)
+
+function toggleHighlightAnswers(){
     highlightCorrectAnswers = !highlightCorrectAnswers
+    console.log("SWITCH CLICKED",highlightCorrectAnswers)
     chrome.storage.local.set({"highlightCorrectAnswers":highlightCorrectAnswers})
     highlightAnswersSwitch.className = highlightCorrectAnswers ? "slider round enabled" : "slider round"
-})
+}
 
 var scrapeButton = document.querySelector("#scrape-button")
 scrapeButton.addEventListener("click",scrapeQuestions)
@@ -100,9 +105,11 @@ function autoSolveQuestions(){
             if(response["type"] == "responseData"){
                 questions = response["data"]
                 questionResponseOutput.innerHTML = questions.questions[questionDropdown.value].response.choices[0].text
+                questionAnswerOutput.innerHTML = questions.questions[questionDropdown.value].answer
                 var obj = {[url]:questions}
                 chrome.storage.local.set(obj)
             }
+
         });
       });
     });
@@ -113,19 +120,12 @@ var questions;
 var questionDropdown = document.querySelector("#questions");
 var questionQuestionOutput = document.querySelector("body > div > div:nth-child(5) > div > div:nth-child(3) > div > p")
 var questionResponseOutput = document.querySelector("body > div > div:nth-child(5) > div > div:nth-child(4) > div > p");
+var questionAnswerOutput = document.querySelector("body > div > div:nth-child(5) > div > div:nth-child(5) > div > p")
 var scrapeButton = document.querySelector("#scrape-button")
 questionDropdown.addEventListener("change",function(){
     var index = questionDropdown.value
     questionQuestionOutput.innerHTML = questions.questions[index].question
     if(!questions.questions[index].response) return;
     questionResponseOutput.innerHTML = questions.questions[index].response.choices[0].text
+    questionAnswerOutput.innerHTML = questions.questions[index].answer
 })
-
-
-chrome.tabs.query({}, tabs => {
-    tabs.forEach(tab => {
-    chrome.tabs.sendMessage(tab.id, {"type":"startup","data":{"api_key":api_key,"highlightCorrectAnswers":highlightCorrectAnswers}},function(response){
-        if(!response) return
-    });
-  });
-});
