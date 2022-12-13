@@ -54,19 +54,45 @@
         <div class="container">
             <div class="aligner">
                 <div class="text">
+                    <p>Actions</p>
+                </div>
+                <div class="options">
+                    <div class="option-holder">
+                        <div class="optiontext">
+                            <p>Scrape Questions</p>
+                        </div>
+                        <div class="switchcontainer">
+                            <button class="search-button" id="scrape-button">Scrape</button>
+                        </div>
+                    </div>
+                    <div class="option-holder">
+                        <div class="optiontext">
+                            <p>Auto Solve</p>
+                        </div>
+                        <div class="switchcontainer">
+                            <button class="search-button" id="auto-solve-button">Solve</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="aligner">
+                <div class="text">
                     <p>Questions</p>
                 </div>
                 <div>
-                    <select class="dropdown" id="cars" name="Question">
-                      <option>Question 1</option>
-                      <option>Question 2</option>
-                      <option>Question 3</option>
-                      <option>Question 4</option>
+                    <select class="dropdown" id="questions" name="Question">
                     </select>
                 </div>
                 <div class="output">
                     <div class="text-aligner">
-                        <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Exercitationem voluptas itaque quasi? Nemo, hic fugit. Illo deleniti iste repellendus? Quod pariatur tempore eum dolores molestiae magnam cupiditate accusantium deserunt corrupti. Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi ut autem accusantium repellat tempora nobis, mollitia quisquam. Magni quia minus quisquam at reiciendis? Modi soluta repellat voluptate perspiciatis sunt ad.</p>
+                        <p>Scraped Questions Will Go Here</p>
+                    </div>
+                </div>
+                <div class="output ospacer">
+                    <div class="text-aligner">
+                        <p>Auto Solve Responses Will Go Here</p>
                     </div>
                 </div>
             </div>
@@ -92,17 +118,6 @@
                         <div class="switchcontainer">
                             <label class="switch">
                                 <input type="checkbox">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="option-holder">
-                        <div class="optiontext">
-                            <p>Auto Solve Enabled</p>
-                        </div>
-                        <div class="switchcontainer">
-                            <label class="switch">
-                                <input id="auto-solve" type="checkbox">
                                 <span class="slider round"></span>
                             </label>
                         </div>

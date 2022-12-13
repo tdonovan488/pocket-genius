@@ -4,9 +4,11 @@ const MODEL = "text-davinci-003"
 const clarifyAnswers = false;
 const highlightCorrectQuestions = false;
 
+var questions;
+
 function parseCanvasMultipleChoice(){
     var questionContainer = document.querySelector("#questions")
-
+    console.log(questionContainer)
     var questionsElements = []
     for(var i = 0; i < questionContainer.children.length;i++){
         var child = questionContainer.children[i];
@@ -71,6 +73,7 @@ function parseCanvasMultipleChoice(){
         })
         questions.questions[x].prompt = questions.questions[x].question + "\n" + questions.questions[x].answers.join("\n") + "\n"
     };
+    document.dispatchEvent(new CustomEvent("mainScript",{"type":"questionsData","data":questions}))
     return questions
 }
 
@@ -146,18 +149,41 @@ async function askForClarification(response,potentialAnswers){
 
 
 async function autoSolveQuestions(){
+    var responseFilled = questions
     for(var i = 0; i < questions.questionCount;i++){
         const response = await sendPromptToAI(questions.questions[i]["prompt"])
         const answer = await parseAIResponse(response.choices[0].text,questions.questions[i]["answers"])
-        questions.questions[i].answer = answer
-        questions.questions[i].response = response
+        responseFilled.questions[i].answer = answer
+        responseFilled.questions[i].response = response
         if(answer && highlightCorrectQuestions){
             questions.questions[i]["answerElements"][questions.questions[i].answers.indexOf(answer)].style = "background-color: #90EE90;";
         }
         console.log("Question " + (i+1) + " Answer: " + answer)
     }
+    return responseFilled
 }
 
-var questions = parseCanvasMultipleChoice()
-autoSolveQuestions()
+function scrapeTest(){
+    return parseCanvasMultipleChoice()
+}
 
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    console.log(JSON.stringify(request))
+    if(!request) return
+    if(request["type"] == "function"){
+        if(request["data"] == "scrape"){
+            questions = scrapeTest()
+            var response = {"type":"scrapeData","data":questions}
+            sendResponse(response)
+            return true
+        }
+        else if(request["data"] == "autoSolve"){
+            questions = request.questionData;
+            (async () => {
+                questions = await autoSolveQuestions()
+                sendResponse({"type":"responseData","data":questions})
+            })();
+            return true
+        }
+    }
+})
