@@ -1,8 +1,8 @@
-const KEY = "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"
-const MODEL = "text-davinci-003"
+var api_key = "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"
+var MODEL = "text-davinci-003"
+var highlightCorrectQuestions = false;
 
 const clarifyAnswers = false;
-const highlightCorrectQuestions = false;
 
 var questions;
 
@@ -83,7 +83,7 @@ async function sendPromptToAI(prompt){
         method: 'POST',
         headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + KEY
+            "Authorization": "Bearer " + api_key
         },
         body: JSON.stringify({
             "model":MODEL,
@@ -184,6 +184,16 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                 sendResponse({"type":"responseData","data":questions})
             })();
             return true
+        }
+    } else if(request["type"] == "startup"){
+        api_key = request["data"]["api_key"]
+        highlightCorrectQuestions = request["data"]["highlightCorrectQuestions"]
+
+    } else if(request["type"] == "updateData"){
+        if(request["data"] == "keyChange"){
+            api_key = request["api_key"]
+        } else if(request["data"] == "highlightChange"){
+            highlightCorrectQuestions = request["highlightCorrectQuestions"]
         }
     }
 })
