@@ -1,5 +1,4 @@
-var api_key = "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"
-api_key = ""
+var api_key = ""
 var MODEL = "text-davinci-003"
 var highlightCorrectQuestions = false;
 const clarifyAnswers = false;
