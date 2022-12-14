@@ -1,6 +1,7 @@
 var api_key = ""
 var MODEL = "text-davinci-003"
-var highlightCorrectQuestions = false;
+var highlightAutoSolveAnswersToggled = false;
+var highlightAutoSolveAnswers = false;
 const clarifyAnswers = false;
 
 var questions;
@@ -9,7 +10,7 @@ var url = document.location.href
 chrome.storage.local.get(null).then((result) => {
     api_key = result.api_key
 
-    highlightCorrectAnswers = Boolean(result.highlightCorrectAnswers)
+    highlightAutoSolveAnswersToggled = Boolean(result.highlightCorrectAnswers)
     questions = result[url]
 });
 
@@ -66,7 +67,7 @@ function parseCanvasMultipleChoice(){
                                                 text = answer.children[1].children[1].children[1].children[0].innerText
                                             }
                                         } catch{}
-                                        answerElements.push(answer)
+                                        answerElements.push(getElementXPath(answer))
                                         answerText.push(text)
                                     }
                                 })
@@ -81,6 +82,7 @@ function parseCanvasMultipleChoice(){
         questions.questions[x].prompt = questions.questions[x].question + "\n" + questions.questions[x].answers.join("\n") + "\n"
     };
     document.dispatchEvent(new CustomEvent("mainScript",{"type":"questionsData","data":questions}))
+    console.log(questions.questions[0])
     return questions
 }
 
@@ -123,6 +125,7 @@ async function parseAIResponse(text,answers){
 async function checkForMatch(response,potentialAnswers){
     var bestScore = 0
     var bestIndex = 0
+    var bestLength = 0
     for(var i = 0; i < potentialAnswers.length; i++){
         var answerWords = potentialAnswers[i].toLowerCase().replace(/[^A-Za-z0-9\s]/g,'').split(" ")
         var matchCount = 0
@@ -132,9 +135,10 @@ async function checkForMatch(response,potentialAnswers){
             }
         }
         var score = matchCount/answerWords.length
-        if (score > bestScore){
+        if (score > bestScore || (bestScore == score && bestLength < answerWords.length)){
             bestScore = score
             bestIndex = i
+            bestLength = answerWords.length
         }
     }
     if(bestScore > 0){
@@ -170,6 +174,7 @@ async function autoSolveQuestions(){
             chrome.storage.local.set({"autoSolveProgress":autoSolveProgress})
             return responseFilled
         }
+        highlightAnswers()
         const answer = await parseAIResponse(response.choices[0].text,questions.questions[i]["answers"])
         responseFilled.questions[i].answer = answer
         responseFilled.questions[i].response = response
@@ -182,9 +187,49 @@ async function autoSolveQuestions(){
     return responseFilled
 }
 
+function highlightAnswers(){
+    for(var i = 0; i < questions.questionCount;i++){
+        var answer = questions.questions[i].answer
+        if(!answer) return
+        var index = questions.questions[i].answers.indexOf(answer)
+        var element = getElementByXpath(questions.questions[i].answerElements[index])
+        if(!element) return
+
+        if(highlightAutoSolveAnswers){
+            element.style = "background-color: #90EE90;"
+        } else {
+            element.style = ""
+        }
+    }
+
+    
+}
+
 function scrapeTest(){
     return parseCanvasMultipleChoice()
 }
+function getElementByXpath(path) {
+    return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+}
+function getElementXPath(element) {
+    if (!element) return null
+  
+    if (element.id) {
+      return `//*[@id="${element.id}"]`
+    } else if (element.tagName === 'BODY') {
+      return '/html/body'
+    } else {
+      const sameTagSiblings = Array.from(element.parentNode.childNodes)
+        .filter(e => e.nodeName === element.nodeName)
+      const idx = sameTagSiblings.indexOf(element)
+  
+      return getElementXPath(element.parentNode) +
+        '/' +
+        element.tagName.toLowerCase() +
+        (sameTagSiblings.length > 1 ? `[${idx + 1}]` : '')
+    }
+  }
+  
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     console.log(JSON.stringify(request))
@@ -209,12 +254,24 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             api_key = request["api_key"]
             return true
         } else if(request["data"] == "highlightChange"){
-            highlightCorrectQuestions = request["highlightCorrectQuestions"]
+            highlightAutoSolveAnswersToggled = request["highlightAutoSolveAnswers"]
+            if(!highlightAutoSolveAnswersToggled) {
+                highlightAutoSolveAnswers = false
+                highlightAnswers()
+            }
             return true
         }
     } else if(request["type"] == "progress"){
         if(request["data"] == "autoSolve"){
             sendResponse({"type":"autoSolveProgress","data":autoSolveProgress})
         }
+    }
+})
+
+
+document.addEventListener("keydown",function(e){
+    if(e.keyCode == 72 && highlightAutoSolveAnswersToggled){
+        highlightAutoSolveAnswers = !highlightAutoSolveAnswers
+        highlightAnswers()
     }
 })
