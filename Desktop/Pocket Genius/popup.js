@@ -1,8 +1,10 @@
+
 var url = ""
 var questions;
 
 var api_key = "";
 var highlightCorrectAnswers = false;
+var autoSolveProgress = 0;
 chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
     url = tabs[0].url.toString();
     console.log(url)
@@ -17,6 +19,8 @@ chrome.storage.local.get(null).then((result) => {
     highlightAnswersSwitch.className = highlightCorrectAnswers ? "slider round enabled" : "slider round"
     console.log(JSON.stringify(result))
 
+    autoSolveProgress = result.autoSolveProgress ? result.autoSolveProgress : 0
+
     if(result[url]){
         questions = result[url]
         for(var i = 0;i< questions.questionCount;i++){
@@ -30,6 +34,32 @@ chrome.storage.local.get(null).then((result) => {
             questionAnswerOutput.innerHTML = questions.questions[0].answer
         }
         questionQuestionOutput.innerHTML = questions.questions[0].question
+    }
+    if(autoSolveProgress != 0){
+        var interval = setInterval(function(){
+            chrome.tabs.query({}, tabs => {
+                tabs.forEach(tab => {
+                    chrome.tabs.sendMessage(tab.id, {"type":"progress","data":"autoSolve"},function(response){
+                        if(!response) return
+                        if(response["type"] == "autoSolveProgress"){
+                            if(response["data"] == 0){
+                                clearInterval(interval)
+                                var index = questionDropdown.value
+                                chrome.storage.local.get(null).then((newData) => {
+                                    questions = newData[url]
+                                    questionResponseOutput.innerHTML = questions.questions[index].response.choices[index].text
+                                    questionAnswerOutput.innerHTML = questions.questions[index].answer
+                                })
+                            } else {
+                                questionResponseOutput.innerHTML = "LOADING..."
+                                questionAnswerOutput.innerHTML = "Auto Solve Progress: " + response["data"] +"/" + questions.questionCount
+                            }
+                        }
+                        
+                    })
+                })
+            })
+        },1000)
     }
 });
 
@@ -94,7 +124,19 @@ function autoSolveQuestions(){
     if(!questions) return;
     console.log("SENDING CLICK ACTION TO MAIN SCRIPT (AUTOSOLVE)")
     questionResponseOutput.innerHTML = "LOADING..."
-    questionAnswerOutput.innerHTML = "PLEASE BE PATIENT"
+    var interval = setInterval(function(){
+        chrome.tabs.query({}, tabs => {
+            tabs.forEach(tab => {
+                chrome.tabs.sendMessage(tab.id, {"type":"progress","data":"autoSolve"},function(response){
+                    if(!response) return
+                    if(response["type"] == "autoSolveProgress"){
+                        questionAnswerOutput.innerHTML = "Auto Solve Progress: " + response["data"] +"/" + questions.questionCount
+                    }
+                
+                })
+            })
+        })
+    },1000)
     chrome.tabs.query({}, tabs => {
         tabs.forEach(tab => {
         chrome.tabs.sendMessage(tab.id, {"type":"function","data":"autoSolve","questionData":questions},function(response){
@@ -104,6 +146,7 @@ function autoSolveQuestions(){
                 questions = response["data"]
                 questionResponseOutput.innerHTML = questions.questions[questionDropdown.value].response.choices[0].text
                 questionAnswerOutput.innerHTML = questions.questions[questionDropdown.value].answer
+                clearInterval(interval)
                 var obj = {[url]:questions}
                 chrome.storage.local.set(obj)
             }

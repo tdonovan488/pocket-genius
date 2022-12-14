@@ -156,18 +156,30 @@ async function askForClarification(response,potentialAnswers){
     return null
 }
 
-
+var autoSolveProgress = 0
 async function autoSolveQuestions(){
     var responseFilled = questions
     for(var i = 0; i < questions.questionCount;i++){
+        autoSolveProgress = i + 1 
+        chrome.storage.local.set({"autoSolveProgress":autoSolveProgress})
         if(responseFilled.questions[i].response.choices) continue
         const response = await sendPromptToAI(questions.questions[i]["prompt"])
-        if(response.error) return responseFilled
+        if(response.error) {
+            autoSolveProgress = 0
+            var obj = {[url]:responseFilled}
+            chrome.storage.local.set(obj)
+            chrome.storage.local.set({"autoSolveProgress":autoSolveProgress})
+            return responseFilled
+        }
         const answer = await parseAIResponse(response.choices[0].text,questions.questions[i]["answers"])
         responseFilled.questions[i].answer = answer
         responseFilled.questions[i].response = response
         console.log("Question " + (i+1) + " Answer: " + answer)
     }
+    autoSolveProgress = 0
+    chrome.storage.local.set({"autoSolveProgress":autoSolveProgress})
+    var obj = {[url]:responseFilled}
+    chrome.storage.local.set(obj)
     return responseFilled
 }
 
@@ -200,6 +212,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         } else if(request["data"] == "highlightChange"){
             highlightCorrectQuestions = request["highlightCorrectQuestions"]
             return true
+        }
+    } else if(request["type"] == "progress"){
+        if(request["data"] == "autoSolve"){
+            sendResponse({"type":"autoSolveProgress","data":autoSolveProgress})
         }
     }
 })
