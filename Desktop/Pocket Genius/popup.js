@@ -89,6 +89,13 @@ function toggleHighlightAnswers(){
     console.log("SWITCH CLICKED",highlightCorrectAnswers)
     chrome.storage.local.set({"highlightCorrectAnswers":highlightCorrectAnswers})
     highlightAnswersSwitch.className = highlightCorrectAnswers ? "slider round enabled" : "slider round"
+    chrome.tabs.query({}, tabs => {
+        tabs.forEach(tab => {
+        chrome.tabs.sendMessage(tab.id, {"type":"updateData","data":"highlightChange","highlightAutoSolveAnswers":highlightCorrectAnswers},function(response){
+            if(!response) return
+        });
+      });
+    });
 }
 
 var scrapeButton = document.querySelector("#scrape-button")
@@ -109,8 +116,6 @@ function scrapeQuestions(){
                     questionDropdown.appendChild(option)
                 }
                 questionQuestionOutput.innerHTML = questions.questions[0].question
-                var obj = {[url]:questions}
-                chrome.storage.local.set(obj)
             }
         });
       });
@@ -147,8 +152,6 @@ function autoSolveQuestions(){
                 questionResponseOutput.innerHTML = questions.questions[questionDropdown.value].response.choices[0].text
                 questionAnswerOutput.innerHTML = questions.questions[questionDropdown.value].answer
                 clearInterval(interval)
-                var obj = {[url]:questions}
-                chrome.storage.local.set(obj)
             }
 
         });
