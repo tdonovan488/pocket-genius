@@ -160,7 +160,9 @@ async function askForClarification(response,potentialAnswers){
 async function autoSolveQuestions(){
     var responseFilled = questions
     for(var i = 0; i < questions.questionCount;i++){
+        if(responseFilled.questions[i].response.choices) continue
         const response = await sendPromptToAI(questions.questions[i]["prompt"])
+        if(response.error) return responseFilled
         const answer = await parseAIResponse(response.choices[0].text,questions.questions[i]["answers"])
         responseFilled.questions[i].answer = answer
         responseFilled.questions[i].response = response

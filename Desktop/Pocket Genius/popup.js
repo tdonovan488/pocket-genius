@@ -92,11 +92,9 @@ autoSolveButton.addEventListener("click",autoSolveQuestions)
 
 function autoSolveQuestions(){
     if(!questions) return;
-    if(questions.questions[0].response) {
-        console.log("DATA ALREADY EXISTS")
-        return
-    };
     console.log("SENDING CLICK ACTION TO MAIN SCRIPT (AUTOSOLVE)")
+    questionResponseOutput.innerHTML = "LOADING..."
+    questionAnswerOutput.innerHTML = "PLEASE BE PATIENT"
     chrome.tabs.query({}, tabs => {
         tabs.forEach(tab => {
         chrome.tabs.sendMessage(tab.id, {"type":"function","data":"autoSolve","questionData":questions},function(response){
