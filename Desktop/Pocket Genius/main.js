@@ -174,7 +174,6 @@ async function autoSolveQuestions(){
             chrome.storage.local.set({"autoSolveProgress":autoSolveProgress})
             return responseFilled
         }
-        highlightAnswers()
         const answer = await parseAIResponse(response.choices[0].text,questions.questions[i]["answers"])
         responseFilled.questions[i].answer = answer
         responseFilled.questions[i].response = response
@@ -190,10 +189,10 @@ async function autoSolveQuestions(){
 function highlightAnswers(){
     for(var i = 0; i < questions.questionCount;i++){
         var answer = questions.questions[i].answer
-        if(!answer) return
+        if(!answer) continue
         var index = questions.questions[i].answers.indexOf(answer)
         var element = getElementByXpath(questions.questions[i].answerElements[index])
-        if(!element) return
+        if(!element) continue
 
         if(highlightAutoSolveAnswers){
             element.style = "background-color: #90EE90;"
