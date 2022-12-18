@@ -12,7 +12,7 @@ chrome.storage.local.get(null).then((result) => {
     }
 
     console.log(JSON.stringify(result))
-    api_key_input.value = options.api_key ? options.api_key : "";
+    api_key_input.value = options.api_key
 
     highlightAnswersSwitch.className = options.highlightAnswersToggled ? "slider round enabled" : "slider round"
 
