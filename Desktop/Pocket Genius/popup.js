@@ -105,7 +105,6 @@ function scrapeQuestions(){
 
 var autoSolveButton = document.querySelector("#auto-solve-button")
 autoSolveButton.addEventListener("click",autoSolveQuestions)
-
 function autoSolveQuestions(){
     if(!questions) return;
     console.log("SENDING CLICK ACTION TO MAIN SCRIPT (AUTOSOLVE)")
@@ -127,7 +126,7 @@ var scrapeButton = document.querySelector("#scrape-button")
 questionDropdown.addEventListener("change",function(){
     var index = questionDropdown.value
     questionQuestionOutput.innerHTML = questions[index].question
-    if(!questions[index].response) return;
+    if(!questions[index].solved) return;
     questionResponseOutput.innerHTML = questions[index].response.choices[0].text
     questionAnswerOutput.innerHTML = questions[index].answer
 })
