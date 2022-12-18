@@ -1,17 +1,15 @@
-var api_key = ""
 var MODEL = "text-davinci-003"
-var highlightAnswersToggled = false;
+var options = {"api_key":"","highlightAnswersToggled":false}
 var answersHighlighted = false;
-const clarifyAnswers = false;
 
 var questions = [];
 
 var url = document.location.href
 chrome.storage.local.get(null).then((result) => {
     console.log(JSON.stringify(result))
-    api_key = result.api_key ? result.api_key : ""
-
-    highlightAnswersToggled = Boolean(result.highlightCorrectAnswers)
+    if(result.options){
+        options = result.options
+    }
     questions = result[url] ? result[url] : []
 });
 
@@ -87,7 +85,7 @@ async function sendPromptToAI(prompt){
         method: 'POST',
         headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + api_key
+            "Authorization": "Bearer " + options.api_key
         },
         body: JSON.stringify({
             "model":MODEL,
@@ -114,7 +112,7 @@ async function parseAIResponse(text,answers){
     }
     var match = await checkForMatch(text,answers)
     if(match) return match
-    return clarifyAnswers ? await askForClarification(text,answers) : null
+    return false ? await askForClarification(text,answers) : null
 }
 
 async function checkForMatch(response,potentialAnswers){
@@ -258,21 +256,15 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             return true
         }
     } else if(request["type"] == "updateData"){
-        if(request["data"] == "keyChange"){
-            api_key = request["api_key"]
-            sendResponse("OK")
-            return true
-        } else if(request["data"] == "highlightChange"){
-            highlightAnswersToggled = request["highlightAnswersToggled"]
-            sendResponse("OK")
-            return true
-        }
+        options = request["data"]
+        sendResponse("OK")
+        return true
     }
 })
 
 
 document.addEventListener("keydown",function(e){
-    console.log("KEY CLICKED",highlightAnswersToggled)
+    console.log("KEY CLICKED",options.highlightAnswersToggled)
     if(e.keyCode == 72 && highlightAnswersToggled){
         
         answersHighlighted = !answersHighlighted
