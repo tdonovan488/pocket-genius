@@ -1,4 +1,3 @@
-
 var url = ""
 var options = {"api_key":"","highlightAnswersToggled":false}
 var questions = [];
@@ -46,6 +45,29 @@ function updateData(){
       });
     });
 }
+function handleResponse(response){
+    if(!response) return
+    if(response["type"] == "scrapeData"){
+        questions = response["data"]
+        Array.from(questionDropdown.children).forEach(element => {
+            element.remove()
+        });
+        for(var i = 0;i< questions.length;i++){
+            var option = document.createElement("option")
+            option.innerHTML = "Question " + (i + 1)
+            option.value = i
+            questionDropdown.appendChild(option)
+        }
+        questionQuestionOutput.innerHTML = questions[0].question
+        chrome.storage.local.set({[url]:questions})
+    } else if(response["type"] == "autoSolveData"){
+        questions = response["data"]
+        if(questions[questionDropdown.value].solved){
+            questionResponseOutput.innerHTML = questions[questionDropdown.value].response.choices[0].text
+            questionAnswerOutput.innerHTML = questions[questionDropdown.value].answer
+        }
+    }
+}
 
 
 var api_key_input = document.querySelector("body > div > div:nth-child(4) > div > div.options > div:nth-child(1) > div.switchcontainer > input")
@@ -75,21 +97,7 @@ function scrapeQuestions(){
     chrome.tabs.query({}, tabs => {
         tabs.forEach(tab => {
         chrome.tabs.sendMessage(tab.id, {"type":"function","data":"scrape"},function(response){
-            if(!response) return
-            if(response["type"] == "scrapeData"){
-                questions = response["data"]
-                Array.from(questionDropdown.children).forEach(element => {
-                    element.remove()
-                });
-                for(var i = 0;i< questions.length;i++){
-                    var option = document.createElement("option")
-                    option.innerHTML = "Question " + (i + 1)
-                    option.value = i
-                    questionDropdown.appendChild(option)
-                }
-                questionQuestionOutput.innerHTML = questions[0].question
-            }
-            chrome.storage.local.set({[url]:questions})
+            handleResponse(response)
         });
       });
     });
@@ -105,14 +113,7 @@ function autoSolveQuestions(){
         tabs.forEach(tab => {
         chrome.tabs.sendMessage(tab.id, {"type":"function","data":"autoSolve","questionData":questions},function(response){
             console.log(JSON.stringify(response))
-            if(!response) return
-            if(response["type"] == "autoSolveData"){
-                questions = response["data"]
-                if(questions[questionDropdown.value].solved){
-                    questionResponseOutput.innerHTML = questions[questionDropdown.value].response.choices[0].text
-                    questionAnswerOutput.innerHTML = questions[questionDropdown.value].answer
-                }
-            }
+            handleResponse(response)
         });
       });
     });
