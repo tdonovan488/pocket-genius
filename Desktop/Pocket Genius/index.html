@@ -17,39 +17,8 @@
         </div>
     </header>
     <div>
-        <div class="container">
-            <div class="aligner">
-                <div class="text">
-                    <p>Search</p>
-                </div>
-                <div class="">
-                    <input class="search-input" placeholder="Enter Search Prompt">
-                    <button class="search-button">Search</button>
-                </div>
-            </div>
-        </div>
-        <div class="container">
-            <div class="aligner">
-                <div class="text">
-                    <p>Result</p>
-                </div>
-                <div class="output">
-                    <div class="text-aligner">
-                        <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Exercitationem voluptas itaque quasi? Nemo, hic fugit. Illo deleniti iste repellendus? Quod pariatur tempore eum dolores molestiae magnam cupiditate accusantium deserunt corrupti. Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi ut autem accusantium repellat tempora nobis, mollitia quisquam. Magni quia minus quisquam at reiciendis? Modi soluta repellat voluptate perspiciatis sunt ad.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container">
-            <div class="aligner">
-                <div class="text">
-                    <p>Edit</p>
-                </div>
-                <div class="">
-                    <input class="search-input" placeholder="Enter Edit Prompt">
-                    <button class="search-button">Edit</button>
-                </div>
-            </div>
+        <div class="snackbar hidden">
+            <p class="snacktext" id="snackbartext">Ratelimited! Please Retry Later</p>
         </div>
         <div class="container">
             <div class="aligner">
@@ -118,7 +87,7 @@
                     </div>
                     <div class="option-holder">
                         <div class="optiontext">
-                            <p>Highlight Answers (h)</p>
+                            <p>Highlight AutoSolve Answers</p>
                         </div>
                         <div class="switchcontainer">
                             <label class="switch">
