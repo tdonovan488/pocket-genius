@@ -1,15 +1,17 @@
 var api_key = ""
 var MODEL = "text-davinci-003"
-var highlightCorrectQuestions = false;
+var highlightAnswersToggled = false;
+var answersHighlighted = false;
 const clarifyAnswers = false;
 
 var questions = [];
 
 var url = document.location.href
 chrome.storage.local.get(null).then((result) => {
-    api_key = result.api_key
+    console.log(JSON.stringify(result))
+    api_key = result.api_key ? result.api_key : ""
 
-    highlightCorrectAnswers = Boolean(result.highlightCorrectAnswers)
+    highlightAnswersToggled = Boolean(result.highlightCorrectAnswers)
     questions = result[url] ? result[url] : []
 });
 
@@ -50,22 +52,19 @@ function parseCanvasMultipleChoice(){
                                     if(answer.className.includes("answer") || answer.className == "answer"){
                                        var text;
                                         try{
-                                            // console.log(answer.children[0].children[1].innerText)
                                             text = answer.children[0].children[1].innerText
                                         } catch{}
                                         try{
                                             if(!text){
-                                                // console.log(answer.children[1].children[1].children[0].innerText)
                                                 text = answer.children[1].children[1].children[0].innerText
                                             }
                                         } catch{}
                                         try{
                                             if(!text){
-                                                // console.log(answer.children[1].children[1].children[1].children[0].innerText)
                                                 text = answer.children[1].children[1].children[1].children[0].innerText
                                             }
                                         } catch{}
-                                        answerElements.push(answer)
+                                        answerElements.push(getElementXPath(answer))
                                         answerText.push(text)
                                     }
                                 })
@@ -97,6 +96,7 @@ async function sendPromptToAI(prompt){
             "max_tokens":50,
         })
     })
+    console.log(JSON.stringify(response))
     return response.json()
 }
 async function parseAIResponse(text,answers){
@@ -169,7 +169,7 @@ async function autoSolveQuestions(){
         });
         if(questions[i].solved) continue
         const response = await sendPromptToAI(questions[i]["prompt"])
-        if(response.error) {
+        if(!response || response.error) {
             return
         }
         const answer = await parseAIResponse(response.choices[0].text,questions[i]["answers"])
@@ -180,9 +180,62 @@ async function autoSolveQuestions(){
     }
 }
 
+async function solveQuestion(index){
+    const response = await sendPromptToAI(questions[index]["prompt"])
+    if(!response || response.error) {
+        return "Error"
+    }
+    const answer = await parseAIResponse(response.choices[0].text,questions[index]["answers"])
+    questions[index].answer = answer
+    questions[index].response = response
+    questions[index].solved = true;
+    console.log("Question " + (index+1) + " Answer: " + answer)
+}
+
 function scrapeTest(){
     return parseCanvasMultipleChoice()
 }
+
+function highlightAnswers(){
+    for(var i = 0; i < questions.length;i++){
+        var answer = questions[i].answer
+        if(!answer) continue
+        var index = questions[i].answers.indexOf(answer)
+        questions[i].answerElement = questions[i].answerElements[index]
+        var element = getElementByXpath(questions[i].answerElement)
+        if(!element) continue
+
+        if(answersHighlighted){
+            element.style = "background-color: #90EE90;"
+        } else {
+            element.style = ""
+        }
+    }
+
+    
+}
+
+function getElementByXpath(path) {
+    return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+}
+function getElementXPath(element) {
+    if (!element) return null
+  
+    if (element.id) {
+      return `//*[@id="${element.id}"]`
+    } else if (element.tagName === 'BODY') {
+      return '/html/body'
+    } else {
+      const sameTagSiblings = Array.from(element.parentNode.childNodes)
+        .filter(e => e.nodeName === element.nodeName)
+      const idx = sameTagSiblings.indexOf(element)
+  
+      return getElementXPath(element.parentNode) +
+        '/' +
+        element.tagName.toLowerCase() +
+        (sameTagSiblings.length > 1 ? `[${idx + 1}]` : '')
+    }
+  }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     console.log(JSON.stringify(request))
@@ -207,10 +260,23 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     } else if(request["type"] == "updateData"){
         if(request["data"] == "keyChange"){
             api_key = request["api_key"]
+            sendResponse("OK")
             return true
         } else if(request["data"] == "highlightChange"){
-            highlightCorrectQuestions = request["highlightCorrectQuestions"]
+            highlightAnswersToggled = request["highlightAnswersToggled"]
+            sendResponse("OK")
             return true
         }
     }
 })
+
+
+document.addEventListener("keydown",function(e){
+    console.log("KEY CLICKED",highlightAnswersToggled)
+    if(e.keyCode == 72 && highlightAnswersToggled){
+        
+        answersHighlighted = !answersHighlighted
+        highlightAnswers()
+    }
+})
+

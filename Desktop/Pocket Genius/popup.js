@@ -9,7 +9,8 @@ chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
 });
 
 chrome.storage.local.get(null).then((result) => {
-    api_key = result.api_key
+    api_key = result.api_key ? result.api_key : ""
+    console.log(JSON.stringify(result))
     api_key_input.value = api_key;
 
     highlightCorrectAnswers = Boolean(result.highlightCorrectAnswers)
@@ -59,6 +60,13 @@ function toggleHighlightAnswers(){
     highlightCorrectAnswers = !highlightCorrectAnswers
     console.log("SWITCH CLICKED",highlightCorrectAnswers)
     chrome.storage.local.set({"highlightCorrectAnswers":highlightCorrectAnswers})
+    chrome.tabs.query({}, tabs => {
+        tabs.forEach(tab => {
+        chrome.tabs.sendMessage(tab.id, {"type":"updateData","data":"highlightChange","highlightAnswersToggled":highlightCorrectAnswers},function(response){
+            if(!response) return
+        });
+      });
+    });
     highlightAnswersSwitch.className = highlightCorrectAnswers ? "slider round enabled" : "slider round"
 }
 
@@ -84,6 +92,7 @@ function scrapeQuestions(){
                 }
                 questionQuestionOutput.innerHTML = questions[0].question
             }
+            chrome.storage.local.set({[url]:questions})
         });
       });
     });
@@ -102,8 +111,10 @@ function autoSolveQuestions(){
             if(!response) return
             if(response["type"] == "autoSolveData"){
                 questions = response["data"]
-                questionResponseOutput.innerHTML = questions[questionDropdown.value].response.choices[0].text
-                questionAnswerOutput.innerHTML = questions[questionDropdown.value].answer
+                if(questions[questionDropdown.value].solved){
+                    questionResponseOutput.innerHTML = questions[questionDropdown.value].response.choices[0].text
+                    questionAnswerOutput.innerHTML = questions[questionDropdown.value].answer
+                }
             }
         });
       });
@@ -137,3 +148,4 @@ chrome.runtime.onMessage.addListener(
         }
     }
 );
+
