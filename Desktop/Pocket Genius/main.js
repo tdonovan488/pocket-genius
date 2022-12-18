@@ -3,14 +3,14 @@ var MODEL = "text-davinci-003"
 var highlightCorrectQuestions = false;
 const clarifyAnswers = false;
 
-var questions;
+var questions = [];
 
 var url = document.location.href
 chrome.storage.local.get(null).then((result) => {
     api_key = result.api_key
 
     highlightCorrectAnswers = Boolean(result.highlightCorrectAnswers)
-    questions = result[url]
+    questions = result[url] ? result[url] : []
 });
 
 function parseCanvasMultipleChoice(){
@@ -23,10 +23,9 @@ function parseCanvasMultipleChoice(){
             questionsElements.push(child);
         }
     }
-
-    var questions = {"questionCount":questionsElements.length,"questions":[]}
+    questions = []
     for(var x = 0; x < questionsElements.length; x++){
-        questions.questions.push({"question":"","answers":[],"answerElements":[],"prompt":"","response":"","answer":""})
+        questions.push({"question":"","answers":[],"answerElements":[],"prompt":"","response":"","answer":"","answerElement":"","solved":false})
         var elementChildren = Array.from(questionsElements[x].children)
         elementChildren.forEach(elementChild =>{
             if(elementChild.id.includes("question_")){
@@ -41,7 +40,7 @@ function parseCanvasMultipleChoice(){
                                 var questionTextChild = childChildChild
                                 if(!questionTextChild) continue;
 
-                                questions.questions[x].question = questionTextChild.innerText
+                                questions[x].question = questionTextChild.innerText
                             }
                             if(childChildChild.className == "answers"){
                                 var answerWrapper = Array.from(childChildChild.children[0].children)
@@ -70,18 +69,16 @@ function parseCanvasMultipleChoice(){
                                         answerText.push(text)
                                     }
                                 })
-                                questions.questions[x].answers = answerText
-                                questions.questions[x].answerElements = answerElements
+                                questions[x].answers = answerText
+                                questions[x].answerElements = answerElements
                             }
                         }
                     }
                 })
             }
         })
-        questions.questions[x].prompt = questions.questions[x].question + "\n" + questions.questions[x].answers.join("\n") + "\n"
+        questions[x].prompt = questions[x].question + "\n" + questions[x].answers.join("\n") + "\n"
     };
-    document.dispatchEvent(new CustomEvent("mainScript",{"type":"questionsData","data":questions}))
-    return questions
 }
 
 
@@ -155,31 +152,32 @@ async function askForClarification(response,potentialAnswers){
     return null
 }
 
-var autoSolveProgress = 0
+async function saveData(){
+    console.log("SAVING DATA")
+    chrome.storage.local.set({[url]:questions})
+}
+
+
 async function autoSolveQuestions(){
-    var responseFilled = questions
-    for(var i = 0; i < questions.questionCount;i++){
-        autoSolveProgress = i + 1 
-        chrome.storage.local.set({"autoSolveProgress":autoSolveProgress})
-        if(responseFilled.questions[i].response.choices) continue
-        const response = await sendPromptToAI(questions.questions[i]["prompt"])
+    for(var i = 0; i < questions.length;i++){
+        chrome.runtime.sendMessage({
+            msg: "progress", 
+            data: {
+                subject: "AutoSolveProgress",
+                content: i + 1
+            }
+        });
+        if(questions[i].solved) continue
+        const response = await sendPromptToAI(questions[i]["prompt"])
         if(response.error) {
-            autoSolveProgress = 0
-            var obj = {[url]:responseFilled}
-            chrome.storage.local.set(obj)
-            chrome.storage.local.set({"autoSolveProgress":autoSolveProgress})
-            return responseFilled
+            return
         }
-        const answer = await parseAIResponse(response.choices[0].text,questions.questions[i]["answers"])
-        responseFilled.questions[i].answer = answer
-        responseFilled.questions[i].response = response
+        const answer = await parseAIResponse(response.choices[0].text,questions[i]["answers"])
+        questions[i].answer = answer
+        questions[i].response = response
+        questions[i].solved = true;
         console.log("Question " + (i+1) + " Answer: " + answer)
     }
-    autoSolveProgress = 0
-    chrome.storage.local.set({"autoSolveProgress":autoSolveProgress})
-    var obj = {[url]:responseFilled}
-    chrome.storage.local.set(obj)
-    return responseFilled
 }
 
 function scrapeTest(){
@@ -191,16 +189,18 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if(!request) return
     if(request["type"] == "function"){
         if(request["data"] == "scrape"){
-            questions = scrapeTest()
-            var response = {"type":"scrapeData","data":questions}
-            sendResponse(response)
+            (async () => {
+                await scrapeTest()
+                await saveData()
+                sendResponse({"type":"scrapeData","data":questions})
+            })();
             return true
         }
         else if(request["data"] == "autoSolve"){
-            questions = request.questionData;
             (async () => {
-                questions = await autoSolveQuestions()
-                sendResponse({"type":"responseData","data":questions})
+                await autoSolveQuestions()
+                await saveData()
+                sendResponse({"type":"autoSolveData","data":questions})
             })();
             return true
         }
@@ -211,10 +211,6 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         } else if(request["data"] == "highlightChange"){
             highlightCorrectQuestions = request["highlightCorrectQuestions"]
             return true
-        }
-    } else if(request["type"] == "progress"){
-        if(request["data"] == "autoSolve"){
-            sendResponse({"type":"autoSolveProgress","data":autoSolveProgress})
         }
     }
 })
