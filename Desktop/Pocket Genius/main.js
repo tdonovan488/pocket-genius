@@ -80,7 +80,7 @@ function parseCanvasMultipleChoice(){
 
 
 async function sendPromptToAI(prompt){
-    if(!api_key) return
+    if(!options.api_key) return
     const response = await fetch("https://api.openai.com/v1/completions",{
         method: 'POST',
         headers: {
@@ -265,7 +265,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 document.addEventListener("keydown",function(e){
     console.log("KEY CLICKED",options.highlightAnswersToggled)
-    if(e.keyCode == 72 && highlightAnswersToggled){
+    if(e.keyCode == 72 && options.highlightAnswersToggled){
         
         answersHighlighted = !answersHighlighted
         highlightAnswers()
