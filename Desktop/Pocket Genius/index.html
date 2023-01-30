@@ -9,91 +9,83 @@
 </head>
 <body>
     <header>
-        <div class="title">
-            <h1>Pocket Genius</h1>
-        </div>
-        <div class="logo-container">
-            <img width="50" height="50" class="logo-img" src="logo.png">
+        <div class="flex-center">
+            <h1 class="title-text" id="logo-text">Pocket Genius</h1>
+            <img width="75" height="75" class="logo-img" src="logo.png">
         </div>
     </header>
-    <div>
-        <div class="snackbar hidden">
-            <p class="snacktext" id="snackbartext">Ratelimited! Please Retry Later</p>
-        </div>
-        <div class="container">
-            <div class="aligner">
-                <div class="text">
-                    <p>Actions</p>
-                </div>
-                <div class="options">
-                    <div class="option-holder">
-                        <div class="optiontext">
-                            <p>Scrape Canvas</p>
-                        </div>
-                        <div class="switchcontainer">
-                            <button class="search-button" id="scrape-button">Scrape</button>
+    <div class="screen-selector flex-center" id="screen-selector">
+        <button value="home" class="screen-button title-text" id="selected-screen">Home</button>
+        <button value="other" class="screen-button title-text">Other</button>
+        <button value="options" class="screen-button title-text">Options</button>
+    </div>
+    <div id="screen-container">
+        <div class="screen" id="home">
+            <div class="container">
+                <div class="container-aligner">
+                    <h2 class="title-text" id="container-text">Site</h2>
+                    <div>
+                        <div class="dropdown-container">
+                            <select class="dropdown" id="site-selector" name="Site Selector">
+                                <option>Canvas</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="option-holder">
-                        <div class="optiontext">
-                            <p>Auto Solve</p>
+                </div>
+            </div>
+            <div class="container">
+                <div class="container-aligner">
+                    <h2 class="title-text" id="container-text">Actions</h2>
+                    <div>
+                        <div class="action">
+                            <button class="action-button title-text" id="scrape-button">Scrape Questions</button>
                         </div>
-                        <div class="switchcontainer">
-                            <button class="search-button" id="auto-solve-button">Solve</button>
+                        <div class="action">
+                            <button class="action-button title-text">Solve Question</button>
+                        </div>
+                        <div class="action">
+                            <button class="action-button title-text" id="auto-solve-button">Solve All Questions</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="container-aligner">
+                    <h2 class="title-text" id="container-text">Questions</h2>
+                    <div>
+                        <div class="dropdown-container">
+                            <select class="dropdown" id="question-selector" name="Question">
+                                <option>Question #</option>
+                            </select>
+                        </div>
+                        <div class="output" id="question-view">
+                            <p>Question View</p>
+                        </div>
+                        <div class="output" id="question-response">
+                            <p>AI Response</p>
+                        </div>
+                        <div class="output" id="question-answer">
+                            <p>Parsed Answer</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="container">
-            <div class="aligner">
-                <div class="text">
-                    <p>Questions</p>
-                </div>
-                <div>
-                    <select class="dropdown" id="questions" name="Question">
-                    </select>
-                </div>
-                <div class="output">
-                    <div class="text-aligner">
-                        <p>Scraped Questions Will Go Here</p>
-                    </div>
-                </div>
-                <div class="output ospacer">
-                    <div class="text-aligner">
-                        <p>Auto Solve Responses Will Go Here</p>
-                    </div>
-                </div>
-                <div class="output ospacer">
-                    <div class="text-aligner">
-                        <p>Parsed Auto Solve Answers Will Go Here</p>
-                    </div>
-                </div>
-            </div>
+        <div class="screen hidden" id="other">
+            <iframe src="https://quizlet.com/638770071/match/embed?i=35b5m1&x=1jj1" height="500" width="100%" style="border:0"></iframe>
         </div>
-        <div class="container">
-            <div class="aligner">
-                <div class="text">
-                    <p>Options</p>
-                </div>
-                <div class="options">
-                    <div class="option-holder">
-                        <div class="optiontext">
-                            <p>API Key</p>
-                        </div>
-                        <div class="switchcontainer">
-                            <input class="optionsinput" placeholder="API Key">
-                        </div>
-                    </div>
-                    <div class="option-holder">
-                        <div class="optiontext">
-                            <p>Highlight AutoSolve Answers</p>
-                        </div>
-                        <div class="switchcontainer">
-                            <label class="switch">
-                                <input type="checkbox">
-                                <span class="slider round"></span>
-                            </label>
+        <div class="screen hidden" id="options">
+            <div class="container">
+                <div class="container-aligner">
+                    <!-- <h2 class="title-text" id="container-text">Options</h2> -->
+                    <div>
+                        <div class="option">
+                            <div class="title-text option-text">
+                                <h3>API Key</h3>
+                            </div>
+                            <div class="input-container">
+                                <input class="options-input" id="api-key-input" placeholder="API Key">
+                            </div>
                         </div>
                     </div>
                 </div>

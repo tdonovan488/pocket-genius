@@ -1,5 +1,5 @@
 var url = ""
-var options = {"api_key":"","highlightAnswersToggled":false}
+var options = {"api_key":""}
 var questions = [];
 
 chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
@@ -14,12 +14,11 @@ chrome.storage.local.get(null).then((result) => {
     console.log(JSON.stringify(result))
     api_key_input.value = options.api_key
 
-    highlightAnswersSwitch.className = options.highlightAnswersToggled ? "slider round enabled" : "slider round"
-
     console.log(JSON.stringify(result[url]))
     questions = result[url] ? result[url] : []
 
     if(questions.length){
+        if (questionDropdown.children[0]) questionDropdown.children[0].remove()
         for(var i = 0;i< questions.length;i++){
             var option = document.createElement("option")
             option.innerHTML = "Question " + (i + 1)
@@ -35,6 +34,24 @@ chrome.storage.local.get(null).then((result) => {
 
 });
 
+const screenSelector = document.querySelector("#screen-selector");
+const selectorChildren = screenSelector.children
+const screenContainer = document.querySelector("#screen-container");
+const screens = screenContainer.children
+for(var i = 0; i < selectorChildren.length;i++){
+    selectorChildren[i].addEventListener("click",function(){
+        for(var i = 0; i < selectorChildren.length;i++){
+            selectorChildren[i].id = ""
+        }
+        this.id = "selected-screen"
+
+        selectedScreen = this.value
+        for(var i = 0; i < screens.length;i++){
+            screens[i].className = screens[i].id != selectedScreen ? "screen hidden" : "screen"
+        }
+    })
+}
+
 function updateData(){
     chrome.storage.local.set({ "options": options})
     chrome.tabs.query({}, tabs => {
@@ -45,6 +62,7 @@ function updateData(){
       });
     });
 }
+
 function handleResponse(response){
     if(!response) return
     if(response["type"] == "scrapeData"){
@@ -52,6 +70,7 @@ function handleResponse(response){
         Array.from(questionDropdown.children).forEach(element => {
             element.remove()
         });
+        if (questionDropdown.children[0]) questionDropdown.children[0].remove()
         for(var i = 0;i< questions.length;i++){
             var option = document.createElement("option")
             option.innerHTML = "Question " + (i + 1)
@@ -70,24 +89,12 @@ function handleResponse(response){
 }
 
 
-var api_key_input = document.querySelector("body > div > div:nth-child(4) > div > div.options > div:nth-child(1) > div.switchcontainer > input")
+var api_key_input = document.querySelector("#api-key-input")
 api_key_input.addEventListener("change",function(){
     console.log("API KEY: " + api_key_input.value)
     options.api_key = api_key_input.value
     updateData()
 })
-
-var highlightAnswersToggle = document.querySelector("body > div > div:nth-child(4) > div > div.options > div:nth-child(2) > div.switchcontainer > label")
-var highlightAnswersSwitch = document.querySelector("body > div > div:nth-child(4) > div > div.options > div:nth-child(2) > div.switchcontainer > label > span")
-
-highlightAnswersSwitch.addEventListener("click",toggleHighlightAnswers)
-
-function toggleHighlightAnswers(){
-    options.highlightAnswersToggled = !options.highlightAnswersToggled
-    console.log("SWITCH CLICKED",options.highlightAnswersToggled)
-    updateData()
-    highlightAnswersSwitch.className = options.highlightAnswersToggled ? "slider round enabled" : "slider round"
-}
 
 var scrapeButton = document.querySelector("#scrape-button")
 scrapeButton.addEventListener("click",scrapeQuestions)
@@ -96,7 +103,7 @@ function scrapeQuestions(){
     console.log("SENDING CLICK ACTION TO MAIN SCRIPT")
     chrome.tabs.query({}, tabs => {
         tabs.forEach(tab => {
-        chrome.tabs.sendMessage(tab.id, {"type":"function","data":"scrape"},function(response){
+        chrome.tabs.sendMessage(tab.id, {"type":"function","data":"scrape","site":""},function(response){
             handleResponse(response)
         });
       });
@@ -118,10 +125,10 @@ function autoSolveQuestions(){
     });
 }
 
-var questionDropdown = document.querySelector("#questions");
-var questionQuestionOutput = document.querySelector("body > div > div:nth-child(3) > div > div:nth-child(3) > div > p")
-var questionResponseOutput = document.querySelector("body > div > div:nth-child(3) > div > div:nth-child(4) > div > p");
-var questionAnswerOutput = document.querySelector("body > div > div:nth-child(3) > div > div:nth-child(5) > div > p")
+var questionDropdown = document.querySelector("#question-selector");
+var questionQuestionOutput = document.querySelector("#question-view")
+var questionResponseOutput = document.querySelector("#question-response");
+var questionAnswerOutput = document.querySelector("#question-answer")
 var scrapeButton = document.querySelector("#scrape-button")
 questionDropdown.addEventListener("change",function(){
     var index = questionDropdown.value

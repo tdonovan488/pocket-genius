@@ -1,5 +1,5 @@
 var MODEL = "text-davinci-003"
-var options = {"api_key":"","highlightAnswersToggled":false}
+var options = {"api_key":""}
 var answersHighlighted = false;
 
 var questions = [];
@@ -78,6 +78,9 @@ function parseCanvasMultipleChoice(){
     };
 }
 
+function parseTestOutMultipleChoice(){
+    
+}
 
 async function sendPromptToAI(prompt){
     if(!options.api_key) return
@@ -264,9 +267,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 
 document.addEventListener("keydown",function(e){
-    console.log("KEY CLICKED",options.highlightAnswersToggled)
-    if(e.keyCode == 72 && options.highlightAnswersToggled){
-        
+    if(e.keyCode == 72){
         answersHighlighted = !answersHighlighted
         highlightAnswers()
     }

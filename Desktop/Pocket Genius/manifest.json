@@ -2,14 +2,20 @@
     "manifest_version": 3,
     "name": "Pocket Genius",
     "version": "1.0",
-    "description": "Never fail another test.",
-    "author": "Tyler",
+    "description": "All your questions answered.",
+    "author": "TMD",
     "content_scripts":[
         {
             "matches":["<all_urls>"],
-            "js":["main.js"]
+            "js":["main.js"],
+            "all_frames": true
         }
     ],
+    "icons": { 
+        "16": "Logo.png",
+        "48": "Logo.png",
+        "128": "Logo.png" 
+    },
     "action": {
         "default_popup": "index.html"
     },
