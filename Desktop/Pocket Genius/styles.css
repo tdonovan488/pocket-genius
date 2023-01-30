@@ -13,6 +13,7 @@
     --contrast-color: #F0E9D2;
     --complementary-color: #181D31;
     --font--color: #434242;
+    --button-hover-color: #cc8f8f;
     --main-font: OpenSansExtraBold;
 }
 ::-webkit-scrollbar {
@@ -32,6 +33,9 @@ button{
     outline: none;
     border: none;
     cursor: pointer;
+}
+button:hover{
+    background-color: var(--button-hover-color);
 }
 
 .flex-center{
@@ -71,7 +75,7 @@ button{
 }
 
 .screen-button:hover{
-    background-color: var(--contrast-color);
+    background-color: var(--button-hover-color);
     color: var(--complementary-color);
 }
 
