@@ -1,9 +1,14 @@
 var url = ""
-var options = {"api_key":""}
+var options = {"api_key":"","selected_site":""}
 var questions = [];
 
 chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
     url = tabs[0].url.toString();
+
+    if(url.includes("?")){
+        var index = url.lastIndexOf("/")
+        url = url.slice(0,index)
+    } 
 });
 
 chrome.storage.local.get(null).then((result) => {
@@ -97,13 +102,15 @@ api_key_input.addEventListener("change",function(){
 })
 
 var scrapeButton = document.querySelector("#scrape-button")
+var siteSelector = document.querySelector("#site-selector")
 scrapeButton.addEventListener("click",scrapeQuestions)
 
 function scrapeQuestions(){
     console.log("SENDING CLICK ACTION TO MAIN SCRIPT")
     chrome.tabs.query({}, tabs => {
         tabs.forEach(tab => {
-        chrome.tabs.sendMessage(tab.id, {"type":"function","data":"scrape","site":""},function(response){
+        chrome.tabs.sendMessage(tab.id, {"type":"function","data":"scrape","site":siteSelector.value},function(response){
+            console.log(response)
             handleResponse(response)
         });
       });

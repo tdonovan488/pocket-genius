@@ -5,15 +5,22 @@ var answersHighlighted = false;
 var questions = [];
 
 var url = document.location.href
+
+if(url.includes("?")){
+    var index = url.lastIndexOf("/")
+    url = url.slice(0,index)
+    console.log(url)
+} 
+
 chrome.storage.local.get(null).then((result) => {
-    console.log(JSON.stringify(result))
     if(result.options){
         options = result.options
     }
     questions = result[url] ? result[url] : []
+    console.log(questions)
 });
 
-function parseCanvasMultipleChoice(){
+function scrapeCanvasMultipleChoice(){
     var questionContainer = document.querySelector("#questions")
     console.log(questionContainer)
     var questionsElements = []
@@ -78,8 +85,66 @@ function parseCanvasMultipleChoice(){
     };
 }
 
-function parseTestOutMultipleChoice(){
+async function scrapeTestOutMultipleChoice(){
+    const questionCount = parseInt(document.querySelector("#ExamEngine\\.questionIndex > span").textContent.split(" ")[3])
     
+    for (var i = 0; i < questionCount;i++){
+        var backButton = document.getElementsByClassName("secondary")[0]
+        if(!backButton) break
+        
+        backButton.click()
+    }
+    
+    async function scrapeQuestion(x){
+        await setTimeout(() => {
+            console.log(x)
+            questions.push({"question":"","answers":[],"answerElements":[],"prompt":"","response":"","answer":"","answerElement":"","solved":false})
+            
+            var questionContainer = document.getElementsByClassName("QuestionText")[0]
+            var question = questionContainer.textContent
+            var multichoiceChildren = document.getElementsByClassName("MultiChoice-answers")[0].children
+            var answers = []
+            var answerElements = []
+            for(var i = 0;i < multichoiceChildren.length;i++){
+                if (multichoiceChildren[i].tagName != "DIV") continue
+                answerElements.push(getElementXPath(multichoiceChildren[i]))
+                answers.push(multichoiceChildren[i].textContent)
+            }
+            
+            
+            questions[x].answers = answers
+            questions[x].answerElements = answerElements
+            questions[x].question = question
+            questions[x].prompt = questions[x].question + "\n" + questions[x].answers.join("\n") + "\n"
+            var nextButton = document.getElementsByClassName("primary")[0]
+            if(x != questionCount - 1) {
+                console.log("Going to nextA")
+                nextButton.click()
+            }
+            else {
+                console.log("SAVING DATA")
+                saveData()
+            }
+        },500*x)
+
+    }
+
+    questions = []
+    for(var x = 0;x< questionCount;x++){
+        await scrapeQuestion(x)
+    }
+
+
+    for (var i = 0; i < questionCount;i++){
+        var backButton = document.getElementsByClassName("secondary")[0]
+        if(!backButton) break
+        
+        backButton.click()
+    }
+
+    console.log(questions)
+    console.log("FINISHED")
+
 }
 
 async function sendPromptToAI(prompt){
@@ -154,7 +219,6 @@ async function askForClarification(response,potentialAnswers){
 }
 
 async function saveData(){
-    console.log("SAVING DATA")
     chrome.storage.local.set({[url]:questions})
 }
 
@@ -193,8 +257,13 @@ async function solveQuestion(index){
     console.log("Question " + (index+1) + " Answer: " + answer)
 }
 
-function scrapeTest(){
-    return parseCanvasMultipleChoice()
+const testLookUpTable = {
+    "testout":scrapeTestOutMultipleChoice,
+    "canvas":scrapeCanvasMultipleChoice
+}
+
+async function scrapeTest(site){
+    return await testLookUpTable[site]()
 }
 
 function highlightAnswers(){
@@ -239,12 +308,12 @@ function getElementXPath(element) {
   }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log(JSON.stringify(request))
     if(!request) return
     if(request["type"] == "function"){
         if(request["data"] == "scrape"){
             (async () => {
-                await scrapeTest()
+                await scrapeTest(request["site"])
+                console.log(questions)
                 await saveData()
                 sendResponse({"type":"scrapeData","data":questions})
             })();
